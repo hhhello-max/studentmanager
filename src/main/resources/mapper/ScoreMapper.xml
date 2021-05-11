@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pjpy.studentManager.mapper.ScoreMapper">
+
+    <resultMap type="com.pjpy.studentManager.domain.Score" id="ScoreInfo">
+        <result column="id"          property="id"/>
+        <result column="sn"          property="sn"/>
+        <result column="course"      property="course"/>
+        <result column="grade"       property="grade"/>
+        <result column="credit"      property="credit"/>
+        <result column="point"       property="point"/>
+    </resultMap>
+
+    <select id="queryList" resultMap="ScoreInfo" >
+        <!-- 根据条件查询所有信息 -->
+        SELECT *
+        from sys_score
+        limit #{startIndex},#{pagesize}
+    </select>
+
+    <select id="queryCount" resultType="int" >
+        select count(*) from sys_score
+        <where>
+            <if test="course!=null"> and course = #{course} </if>
+            <if test="sn!=null"> and sn = #{sn} </if>
+        </where>
+    </select>
+
+    <insert id="addScore" parameterType="Score">
+        insert into sys_score(sn,course,grade,credit,point)
+        values(#{sn},#{course},#{grade},#{credit},#{point})
+    </insert>
+
+    <delete id="deleteScore" parameterType="int">
+        delete from sys_score where id = #{id}
+    </delete>
+
+    <select id="isScore" parameterType="Score" resultType="Score">
+        select * from sys_score where course = #{course} and sn = #{sn}
+    </select>
+
+    <update id="editScore" parameterType="Score">
+        update  sys_score set sn = #{sn},course = #{course},score = #{score}, where id = #{id}
+    </update>
+
+    <select id="getAll" parameterType="Score" resultMap="ScoreInfo">
+        select  s_score.*,s_course.name as courseName,s_student.username as studentName
+        from s_score,s_course,s_student
+        <where>
+            s_score.course_id = s_course.id and s_score.student_id = s_student.id
+            <if test="courseId!=null and courseId != ''"> and course_id = #{courseId} </if>
+            <if test="studentId!=null and studentId != ''"> and student_id = #{studentId} </if>
+        </where>
+    </select>
+
+    <select id="getName" resultType="java.lang.String">
+        select username from sys_student where sn = #{sn}
+    </select>
+
+    <select id="getCandidate" resultType="candidate">
+        select sn,avg(point) as grade from sys_score group by sn having avg(point) >= #{point};
+    </select>
+
+
+</mapper>

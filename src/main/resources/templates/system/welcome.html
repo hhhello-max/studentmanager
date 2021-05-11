@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport"
+		  content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Document</title>
+
+</head>
+<body>
+
+<div th:fragment="welcome">
+	<div title="欢迎使用" style="padding:20px;overflow:hidden; color:#6a00ff; ">
+		<p style="font-size: 25px; line-height: 30px; height: 30px;">评奖评优管理系统</p>
+		<hr />
+
+
+		<div class="easyui-layout" style="width:1000px;height:400px;">
+			<div region="west" split="true" title="最新消息" style="width:300px;">
+				<table>
+					<tbody >
+					<tr th:each="inform:${session.informs}">
+						<td ><a th:attr="data-bind=${inform.content}" href="javascript:void(0)" onclick="showContent(this.getAttribute('data-bind'))" >[[${inform.title}]]</a></td>
+						<td th:text="${#dates.format(inform.informTime,'yyyy-MM-dd')}">2022年12月12日</td>
+					</tr>
+					</tbody>
+				</table>
+
+			</div>
+			<div id="content" region="center" title="详细" style="padding:5px;">
+			</div>
+		</div>
+
+	</div>
+</div>
+
+
+<div id="InformDialog" style="padding: 10px">
+	<textarea style="width: 300px; height: 160px;" class="easyui-textbox" data-options="multiline:true,required:true, missingMessage:'申请理由不能为空'"></textarea>
+</div>
+
+</body>
+</html>

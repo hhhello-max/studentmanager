@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>评奖记录</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/easyui/themes/default/easyui.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/easyui/themes/icon.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/easyui/css/demo.css}">
+    <script type="text/javascript" th:src="@{/easyui/jquery.min.js}"></script>
+    <script type="text/javascript" th:src="@{/easyui/jquery.easyui.min.js}"></script>
+    <script type="text/javascript" th:src="@{/easyui/js/validateExtends.js}"></script>
+    <script type="text/javascript" th:inline="javascript">
+        /*<![CDATA[*/
+        $(function() {
+            //datagrid初始化
+            $('#dataList').datagrid({
+                title:'评奖记录',
+                iconCls:'icon-more',//图标
+                border: true,
+                collapsible: false,//是否可折叠的
+                fit: true,//自动大小
+                method: "post",
+                url:[[@{/application/getApplicationList}]],
+                pagination: true,//分页控件
+                rownumbers: true,//行号
+                sortOrder:'DESC',
+                remoteSort: false,
+                columns: [[
+                    {field:'chk',checkbox: true,width:50},
+                    {field:'id',title:'ID',width:50, sortable: true},
+                    {field:'sn',title:'学号',width:100, sortable: true},
+                    {field:'applicant',title:'申请人',width:200},
+                    {field:'award',title:'申请奖项',width:200},
+                    {field:'material',title: '申请材料',width:200,
+                        formatter : function(value, row,index) {
+                        //
+                            var image = "http://localhost:8080/upload/imgs/"+value;
+                            if (value === '') {
+                                return '';
+                            } else {
+                                // return '<img  style="display:block;margin:0 auto" onclick="showImg(this)"  src='"+image+"' height="50" width="100" />';
+                                return "<img src='"+image+"' onclick='showImg(this)' style='width:100px; height: 50px;display:block;margin:0 auto'>";
+                            }
+                        }
+                    },
+                    {field:'status',title:'状态',width:80,
+                        formatter: function(value,row,index){
+                            switch(row.status){
+                                case 0:{
+                                    return '等待审核';
+                                }
+                                case 1:{
+                                    return '审核通过';
+                                }
+                                case -1:{
+                                    return '审核不通过';
+                                }
+                            }
+                        }
+                    },
+                    {field:'grade',title:'审核分数',width:100},
+                ]],
+                toolbar: "#toolbar",
+                onBeforeLoad : function(){
+                    try{
+                        $("#studentList").combobox("getData")
+                    }catch(err){
+                        preLoadClazz();
+                    }
+                }
+            });
+            //提前加载学生信息
+            function preLoadClazz(){
+                $("#studentList").combobox({
+                    width: "150",
+                    height: "25",
+                    valueField: "id",
+                    textField: "username",
+                    multiple: false, //可多选
+                    editable: false, //不可编辑
+                    method: "post",
+                    url: [[@{/student/getStudentList(from=combox)}]],
+                    onChange: function(newValue, oldValue){
+                        //加载班级下的学生
+                        //$('#dataList').datagrid("options").queryParams = {clazzid: newValue};
+                        //$('#dataList').datagrid("reload");
+                    }
+                });
+            }
+
+            //设置分页控件
+            var p = $('#dataList').datagrid('getPager');
+            $(p).pagination({
+                pageSize: 10,//每页显示的记录条数，默认为10
+                pageList: [10,20,30,50,100],//可以设置每页记录条数的列表
+                beforePageText: '第',//页数文本框前显示的汉字
+                afterPageText: '页    共 {pages} 页',
+                displayMsg: '当前显示 {from} - {to} 条记录   共 {total} 条记录',
+            });
+
+
+            //设置审核按钮
+            $("#check").click(function(){
+                var selectRows = $("#dataList").datagrid("getSelections");
+                if(selectRows.length !== 1){
+                    $.messager.alert("消息提醒", "请选择一条数据进行操作!", "warning");
+                } else{
+                    if(selectRows[0].status !== 0){
+                        $.messager.alert("消息提醒", "该请假信息已被审核，请勿重复审核!", "warning");
+                        return;
+                    }
+                    $("#checkDialog").dialog("open");
+                }
+            });
+
+            //审核请假信息
+            $("#checkDialog").dialog({
+                title: "审核申请信息",
+                width: 450,
+                height: 350,
+                iconCls: "icon-edit",
+                modal: true,
+                collapsible: false,
+                minimizable: false,
+                maximizable: false,
+                draggable: true,
+                closed: true,
+                buttons: [
+                    {
+                        text:'提交',
+                        plain: true,
+                        iconCls:'icon-add',
+                        handler:function(){
+                            var validate = $("#checkForm").form("validate");
+                            if(!validate){
+                                $.messager.alert("消息提醒","请检查你输入的数据!","warning");
+                                return;
+                            } else{
+                                var id = $("#dataList").datagrid("getSelected").id;
+                                var sn = $("#dataList").datagrid("getSelected").sn;
+                                var applicant = $("#dataList").datagrid("getSelected").applicant;
+                                var award = $("#dataList").datagrid("getSelected").award;
+                                var material = $("#dataList").datagrid("getSelected").material;
+                                var status = $("#check_statusList").combobox("getValue");
+                                var grade = $("#check_grade").textbox("getValue");
+                                var data = {id:id, sn:sn, applicant:applicant, award:award, material:material,status:status , grade:grade};
+
+                                $.ajax({
+                                    type: "post",
+                                    url: [[@{/application/checkApplication}]],
+                                    data: data,
+                                    success: function(data){
+                                        if(data.success){
+                                            $.messager.alert("消息提醒",data.message,"info");
+                                            //关闭窗口
+                                            $("#checkDialog").dialog("close");
+                                            //清空原表格数据
+                                            $("#check_grade").val("");
+
+                                            //重新刷新页面数据
+                                            $('#dataList').datagrid("reload");
+                                            $('#dataList').datagrid("uncheckAll");
+
+                                        } else{
+                                            $.messager.alert("消息提醒",data.message,"warning");
+                                            return;
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    },
+                    {
+                        text:'重置',
+                        plain: true,
+                        iconCls:'icon-reload',
+                        handler:function(){
+                            $("#check_statusList").combox('clear');
+                            $("#check_grade").val("");
+                        }
+                    },
+                ],
+                onBeforeOpen: function(){
+                    /*
+                    var selectRow = $("#dataList").datagrid("getSelected");
+                    //设置值
+                    $("#edit_info").textbox('setValue',selectRow.info);
+                    //$("#edit-id").val(selectRow.id);
+                    var studentId = selectRow.studentId;
+                    setTimeout(function(){
+                        $("#edit_studentList").combobox('setValue', studentId);
+                    }, 100);*/
+                },
+                onClose: function(){
+                    $("#edit_info").val("");
+                    //$("#edit-id").val('');
+                }
+            });
+
+            //删除
+            $("#delete").click(function(){
+                var selectRow = $("#dataList").datagrid("getSelected");
+                if(selectRow == null){
+                    $.messager.alert("消息提醒", "请选择数据进行删除!", "warning");
+                } else{
+                    $.messager.confirm("消息提醒", "确认删除吗，确认继续？", function(r){
+                        if(r){
+                            $.ajax({
+                                type: "post",
+                                url: [[@{/application/deleteApplication}]],
+                                data: {id: selectRow.id},
+                                success: function(data){
+                                    if(data.success){
+                                        $.messager.alert("消息提醒",data.message,"info");
+                                        //刷新表格
+                                        $("#dataList").datagrid("reload");
+                                    } else{
+                                        $.messager.alert("消息提醒",data.message,"warning");
+                                        return;
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+
+            //下拉框通用属性
+            $("#add_studentList, #edit_studentList,#studentList").combobox({
+                width: "200",
+                height: "30",
+                valueField: "id",
+                textField: "username",
+                multiple: false, //不可多选
+                editable: false, //不可编辑
+                method: "post",
+            });
+
+            //搜索按钮监听事件
+            $("#search-btn").click(function(){
+                $('#dataList').datagrid('load',{
+                    studentid: $("#studentList").combobox('getValue') === '' ? 0 : $("#studentList").combobox('getValue')
+                });
+            });
+
+            //清空搜索条件
+            $("#clear-btn").click(function(){
+                $('#dataList').datagrid("reload",{});
+                $("#studentList").combobox('clear');
+            });
+        });
+
+        function showImg(imgObj) {
+            // 若imgObj为空或imgObj的[src]为【Þ】时，图片无法打开
+            if ((imgObj === undefined || imgObj == null || imgObj.length === 0)
+                || ($(imgObj).attr("src") === "" || /Þ$/i.test($(imgObj).attr("src")))) {
+                $.messager.alert('提示', "该图片无法打开！");
+                return;
+            }
+            var img = new Image();
+            img.src = $(imgObj).attr("src");
+
+            var imgWidth = "";
+            var imgHeight = "";
+            var imgProportion="";
+            // 当<img>的class中配置了"img-width-**px"或"img-height-**px"或"img-proportion-**%"时（仅支持整数），使用对应的图片大小
+            var imgClassNames = $(imgObj).prop("class");
+            if (imgClassNames !== undefined && imgClassNames !== "") {
+                var imgClassNameArray = imgClassNames.split(" ");
+                var imgClassName;
+                for (var index in imgClassNameArray) {
+                    imgClassName = imgClassNameArray[index];
+                    // 图片宽度
+                    if (/^(img-width-\d+px)/i.test(imgClassName)) {
+                        imgWidth = imgClassName.substring(10,imgClassName.length-2);
+
+                        // 图片高度
+                    } else if (/^(img-height-\d+px)/i.test(imgClassName)) {
+                        imgHeight = imgClassName.substring(11,imgClassName.length-2);
+
+                        // 图片显示比例
+                    } else if (/^(img-proportion-\d+%)/i.test(imgClassName)) {
+                        imgProportion = imgClassName.substring(15,imgClassName.length);
+                    }
+                }
+            }
+            // 显示宽度
+            if (imgWidth != null && imgWidth != "") {
+                img.width = imgWidth;
+            }
+            // 显示高度
+            if (imgHeight != null && imgHeight != "") {
+                img.height = imgHeight;
+            }
+            // 显示比例设置
+            if (imgProportion != null && imgProportion != "") {
+                img.width  = img.width * parseFloat(imgProportion)/100;
+                img.height  = img.height * parseFloat(imgProportion)/100;
+            }
+            // 保持图片纵横比的情况下，取得能够在$(window)中放得下的大小
+            var heightWidthPropor = img.height/img.width;
+            var width = $(window).width()*0.8 >= img.width ? img.width:$(window).width()*0.8;
+            var height;
+            if ($(window).height()*0.8 < width*heightWidthPropor) {
+                height = $(window).height()*0.8;
+                width = height/heightWidthPropor;
+            } else {
+                height = width*heightWidthPropor;
+            }
+
+            // 防止因用户拖动边框而导致dialog宽高固定不变
+            $("#dialog").parent().css("width","auto");
+            $("#dialog").parent().css("height","auto");
+
+            $("#img_id").css("height",height + "px");
+            $("#img_id").css("max-height",height + "px");
+            if (imgWidth != null && imgWidth != "") {
+                $("#img_id").css("width",width + "px");
+                $("#img_id").css("max-width",width + "px");
+            }
+
+            $("#dialog").css("width",width + "px");
+            $("#dialog").css("height",height + 5 + "px");
+
+            $("#img_id").css("overflow","hidden");
+            $("#img_id").attr('src',img.src);
+            $("#dialog").window('center');
+            // 解决关闭按钮位置问题
+            $("div.panel-header.panel-header-noborder.window-header").css("width","auto");
+            $("#dialog").dialog("open");
+        }
+        /*]]>*/
+    </script>
+</head>
+<body>
+<!-- 数据列表 -->
+<table id="dataList" cellspacing="0" cellpadding="0">
+
+</table>
+<!-- 工具栏 -->
+<div id="toolbar">
+    <div style="float: left;" class="datagrid-btn-separator"></div>
+    <div style="float: left;"><a id="check" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true">审核</a></div>
+    <div style="float: left; margin-right: 10px;"><a id="delete" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-some-delete',plain:true">删除</a></div>
+    <div style="float: left;" class="datagrid-btn-separator"></div>
+    <div style="margin-top: 3px;">
+        学生：<input id="studentList" class="easyui-textbox" name="studentid" />
+        <a id="search-btn" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-search',plain:true">搜索</a>
+        <a id="clear-btn" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-search',plain:true">清空搜索</a>
+    </div>
+</div>
+
+<!-- 审核数据窗口 -->
+<div id="checkDialog" style="padding: 10px">
+    <form id="checkForm" method="post">
+        <table cellpadding="8" >
+            <tr>
+                <td style="width:60px">奖项审核:</td>
+                <td colspan="3">
+                    <select id="check_statusList" style="width: 300px; height: 30px;" class="easyui-combobox" name="status" data-options="required:true, missingMessage:'请选择状态'" >
+                        <option value="1">审核通过</option>
+                        <option value="-1">审核不通过</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td style="width:40px">打分:</td>
+                <td colspan="3">
+                    <input id="check_grade" style="width: 200px; height: 30px;" class="easyui-numberbox"
+                           data-options="required:true,min:0,precision:1, missingMessage:'请填写正确的分数'" name="grade"/>
+                </td>
+                <td style="width:80px"></td>
+            </tr>
+        </table>
+    </form>
+</div>
+
+<div id="dialog" class="easyui-dialog" title="图片预览" data-options="resizable:true,modal:false,closed:true,closeOnEscape:false" >
+    <img id="img_id" alt="">
+</div>
+</body>
+</html>

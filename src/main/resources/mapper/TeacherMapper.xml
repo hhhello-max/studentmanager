@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pjpy.studentManager.mapper.TeacherMapper">
+
+    <resultMap type="com.pjpy.studentManager.domain.Teacher" id="TeacherInfo">
+        <result column="id"          property="id"/>
+        <result column="sn"          property="sn"/>
+        <result column="username"    property="username"/>
+        <result column="password"    property="password"/>
+        <result column="clazz_id"    property="clazzId"/>
+        <result column="sex"         property="sex"/>
+        <result column="age"         property="age"/>
+        <result column="email"       property="email"/>
+        <result column="mobile"      property="mobile"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="queryList" resultMap="TeacherInfo" >
+        <!-- 查询所有信息 -->
+        SELECT *
+        from sys_teacher
+        <where>
+            <if test="username!=null"> and username LIKE concat("%",#{username},"%") </if>
+            <if test="clazzid!=null"> and clazz_id LIKE concat("%",#{clazzid},"%") </if>
+            <if test="sn!=null"> and id = #{sn} </if>
+        </where>
+        limit #{startIndex},#{pagesize}
+    </select>
+
+    <select id="queryCount" resultType="int" >
+        select count(*) from sys_teacher
+        <where>
+            <if test="username!=null"> and username LIKE concat("%",#{username},"%") </if>
+            <if test="clazzid!=null"> and clazz_id LIKE concat("%",#{clazzid},"%") </if>
+            <if test="sn!=null"> and id = #{sn} </if>
+        </where>
+    </select>
+
+    <insert id="addTeacher" parameterType="Teacher">
+        insert into sys_teacher(sn,username,password,clazz_id,sex,age,email,mobile,create_time)
+        values(#{sn},#{username},#{password},#{clazzId},#{sex},#{age},#{email},#{mobile},sysdate())
+    </insert>
+
+    <delete id="deleteTeacher" parameterType="java.util.ArrayList">
+        delete from sys_teacher
+        <where>
+            sn in
+            <foreach collection="list" open="(" close=")" separator="," item="sn">
+                #{sn}
+            </foreach>
+        </where>
+    </delete>
+
+    <update id="editTeacher" parameterType="Teacher">
+        update sys_teacher
+        <set>
+            <if test="username != null">
+                username = #{username},
+            </if>
+            <if test="clazzId != null">
+                clazz_id = #{clazzId},
+            </if>
+            <if test="sex != null">
+                sex = #{sex},
+            </if>
+            <if test="age != null">
+                age = #{age},
+            </if>
+            <if test="email != null">
+                email = #{email},
+            </if>
+            <if test="mobile != null">
+                mobile = #{mobile},
+            </if>
+            update_time = sysdate()
+        </set>
+        where sn = #{sn}
+        </update>
+
+
+    <select id="findBySn" parameterType="String" resultType="Teacher">
+        select * from sys_teacher where sn = #{sn}
+    </select>
+
+
+    <select id="findByTeacher" parameterType="Teacher" resultType="Teacher">
+        select * from sys_teacher where username = #{username} and password = #{password}
+    </select>
+
+    <update id="editPswdByTeacher" parameterType="Teacher">
+        update  sys_teacher set password = #{password} where id = #{id}
+    </update>
+</mapper>

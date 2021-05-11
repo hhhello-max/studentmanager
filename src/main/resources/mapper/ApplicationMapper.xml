@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pjpy.studentManager.mapper.ApplicationMapper">
+
+    <resultMap type="com.pjpy.studentManager.domain.Application" id="ApplicationInfo">
+        <result column="id"         property="id"/>
+        <result column="sn"         property="sn"/>
+        <result column="applicant"  property="applicant"/>
+        <result column="award"      property="award"/>
+        <result column="material"   property="material"/>
+        <result column="grade"      property="grade"/>
+    </resultMap>
+
+    <select id="queryList" resultMap="ApplicationInfo" >
+        <!-- 根据条件查询所有信息 -->
+        SELECT *
+        from sys_application
+        limit #{startIndex},#{pagesize}
+    </select>
+
+    <select id="queryCount" resultType="int" >
+        select count(*) from sys_application
+    </select>
+
+    <select id="queryBySn" parameterType="string" resultMap="ApplicationInfo">
+        select *
+        from sys_application
+        where sn = #{sn}
+    </select>
+
+    <select id="queryCountBySn" parameterType="string" resultType="int">
+        select count(*) from sys_application where sn = #{sn}
+    </select>
+
+    <insert id="addApplication" parameterType="Application">
+        insert into sys_application(sn,applicant,award,material,status)
+        values(#{sn},#{applicant},#{award},#{material},#{status})
+    </insert>
+
+    <delete id="deleteApplication" parameterType="int">
+        delete from sys_application where id = #{id}
+    </delete>
+
+    <update id="editApplication" parameterType="Application">
+        update sys_application set applicant = #{applicant},award = #{award},material = #{material} where id = #{id}
+    </update>
+
+    <update id="checkApplication" parameterType="Application">
+        update sys_application set applicant = #{applicant},award = #{award},status = #{status},grade = #{grade} where id = #{id}
+    </update>
+
+</mapper>

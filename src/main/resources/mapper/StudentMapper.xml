@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pjpy.studentManager.mapper.StudentMapper">
+
+    <resultMap type="com.pjpy.studentManager.domain.Student" id="StudentInfo">
+        <result column="id"          property="id"/>
+        <result column="sn"          property="sn"/>
+        <result column="username"    property="username"/>
+        <result column="password"    property="password"/>
+        <result column="clazz"       property="clazz"/>
+        <result column="sex"         property="sex"/>
+        <result column="age"         property="age"/>
+        <result column="email"       property="email"/>
+        <result column="mobile"      property="mobile"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="queryList" resultMap="StudentInfo" >
+        <!-- 查询所有信息 -->
+        SELECT *
+        from sys_student
+        <where>
+            <if test="username!=null"> and username LIKE concat("%",#{username},"%") </if>
+            <if test="clazz!=null"> and clazz LIKE concat("%",#{clazz},"%") </if>
+            <if test="sn!=null"> and id = #{sn} </if>
+        </where>
+        limit #{startIndex},#{pagesize}
+    </select>
+
+    <select id="queryCount" resultType="int" >
+        select count(*) from sys_student
+        <where>
+            <if test="username!=null"> and username LIKE concat("%",#{username},"%") </if>
+            <if test="clazz!=null"> and clazz LIKE concat("%",#{clazz},"%") </if>
+            <if test="id!=null"> and id = #{id} </if>
+        </where>
+    </select>
+
+    <insert id="addStudent" parameterType="Student">
+        insert into sys_student(sn,username,password,clazz,sex,age,email,mobile,create_time)
+        values(#{sn},#{username},#{password},#{clazz},#{sex},#{age},#{email},#{mobile},sysdate())
+    </insert>
+
+    <delete id="deleteStudent" parameterType="java.util.ArrayList">
+        delete from sys_student
+        <where>
+            sn in
+            <foreach collection="list" open="(" close=")" separator="," item="sn">
+                #{sn}
+            </foreach>
+        </where>
+    </delete>
+
+    <update id="editStudent" parameterType="Student">
+        update sys_student
+        <set>
+            <if test="username != null">
+                username = #{username},
+            </if>
+            <if test="clazz != null">
+                clazz = #{clazz},
+            </if>
+            <if test="sex != null">
+                sex = #{sex},
+            </if>
+            <if test="age != null">
+                age = #{age},
+            </if>
+            <if test="email != null">
+                email = #{email},
+            </if>
+            <if test="mobile != null">
+                mobile = #{mobile},
+            </if>
+            update_time = sysdate()
+        </set>
+        where sn = #{sn}
+    </update>
+
+
+    <select id="findBySn" parameterType="string" resultType="Student">
+        select * from sys_student where sn = #{sn}
+    </select>
+
+    <select id="findByStudent" parameterType="Student" resultType="Student">
+        select * from sys_student where username = #{username} and password = #{password}
+    </select>
+
+    <select id="isStudentByClazzId" parameterType="int" resultMap="StudentInfo">
+        select * from sys_student where clazz_id = #{id}
+    </select>
+
+    <update id="editPswdByStudent" parameterType="Student">
+        update  sys_student set password = #{password} where id = #{id}
+    </update>
+
+    <select id="findByName" parameterType="java.lang.String" resultType="int">
+        select id from sys_student where username = #{name}
+    </select>
+    <select id="getClazz" parameterType="string" resultType="java.lang.String">
+        select clazz from sys_student where sn = #{sn}
+    </select>
+
+    <select id="getAll" resultType="com.pjpy.studentManager.domain.Student">
+        select * from sys_student;
+    </select>
+
+</mapper>

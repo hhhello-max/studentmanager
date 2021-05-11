@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pjpy.studentManager.mapper.InformMapper">
+
+    <resultMap type="com.pjpy.studentManager.domain.Inform" id="InformInfo">
+        <result column="id"          property="id"/>
+        <result column="title"       property="title"/>
+        <result column="content"     property="content"/>
+        <result column="inform_time" property="informTime"/>
+    </resultMap>
+
+
+    <select id="queryList" resultMap="InformInfo" >
+        <!-- 根据条件查询所有信息 -->
+        SELECT *
+        from sys_inform
+        limit #{startIndex},#{pagesize}
+    </select>
+
+    <select id="queryCount" resultType="int" >
+        select count(*) from sys_inform
+    </select>
+
+    <select id="getAll" resultMap="InformInfo">
+        select * from sys_inform
+    </select>
+
+    <insert id="addInform" parameterType="Result">
+        insert into sys_inform(title,content,inform_time)
+        values(#{title},#{content},sysdate())
+    </insert>
+
+    <update id="editInform" parameterType="Inform">
+        update sys_inform
+        <set>
+            <if test="title != null">
+                title = #{title},
+            </if>
+            <if test="content != null">
+                content = #{content},
+            </if>
+            inform_time = sysdate()
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteInform" parameterType="int">
+        delete from sys_inform where id = #{id}
+    </delete>
+
+</mapper>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>PJPY管理系统</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/easyui/css/default.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/easyui/themes/default/easyui.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/easyui/themes/icon.css}"/>
+    <script type="text/javascript" th:src="@{/easyui/jquery.min.js}"></script>
+    <script type="text/javascript" th:src="@{/easyui/jquery.easyui.min.js}"></script>
+    <script type="text/javascript" th:src='@{/easyui/js/outlook2.js}'></script>
+    <script type="text/javascript" th:inline="javascript">
+
+        var usertype = [[${session.usertype}]];
+        if (usertype === "1") {
+            var _menus = {
+                "menus": [
+                    {
+                        "menuid": "1", "icon": "", "menuname": "用户信息管理",
+                        "menus": [
+                            {
+                                "menuid": "11",
+                                "menuname": "学生列表",
+                                "icon": "icon-user-student",
+                                "url":/*[[@{/student/student_list}]]*/
+                            },
+                            {
+                                "menuid": "13",
+                                "menuname": "教师列表",
+                                "icon": "icon-user-teacher",
+                                "url":/*[[@{/teacher/teacher_list}]]*/
+                            },
+                        ]
+                    },
+                    {
+                        "menuid": "2", "icon": "", "menuname": "奖优信息管理",
+                        "menus": [
+                            {
+                                "menuid": "21",
+                                "menuname": "查看奖项",
+                                "icon": "icon-book-open",
+                                "url":/*[[@{/award/award_list}]]*/
+                            },
+                            {
+                                "menuid": "22",
+                                "menuname": "评奖记录",
+                                "icon": "icon-book-open",
+                                "url": /*[[@{/application/application_list}]]*/
+                            }
+                        ]
+                    },
+
+                    {
+                        "menuid": "4", "icon": "", "menuname": "评奖资格管理",
+                        "menus": [
+                            {
+                                "menuid": "42",
+                                "menuname": "成绩列表",
+                                "icon": "icon-book-open",
+                                "url": /*[[@{/score/score_list}]]*/
+                            },
+                            {
+                                "menuid": "43",
+                                "menuname": "资格人列表",
+                                "icon": "icon-book-open",
+                                "url": /*[[@{/candidate/candidate_list}]]*/
+                            }
+                        ]
+                    },
+                    {
+                        "menuid": "3", "icon": "", "menuname": "发布评奖信息",
+                        "menus": [
+                            {
+                                "menuid": "31",
+                                "menuname": "评奖通知",
+                                "icon": "icon-book-open",
+                                "url":/*[[@{/system/informList}]]*/
+                            },
+                        ]
+                    },
+                    {
+                        "menuid": "5", "icon": "", "menuname": "评奖结果公示",
+                        "menus": [
+                            {
+                                "menuid": "51",
+                                "menuname": "评奖结果",
+                                "icon": "icon-book-open",
+                                "url":/*[[@{/result/result_list}]]*/
+                            },
+                        ]
+                    },
+                    {
+                        "menuid": "6", "icon": "", "menuname": "修改密码",
+                        "menus": [
+                            {
+                                "menuid": "61",
+                                "menuname": "修改密码",
+                                "icon": "icon-set",
+                                "url":/*[[@{/system/personalView}]]*/
+                            },
+                        ]
+                    }
+                ]
+            };
+        }
+        if (usertype === "3") {
+            var _menus = {
+                "menus": [
+                    {
+                        "menuid": "2", "icon": "", "menuname": "查看评奖评优信息",
+                        "menus": [
+                            {
+                                "menuid": "21",
+                                "menuname": "查看奖项",
+                                "icon": "icon-book-open",
+                                "url":/*[[@{/award/award_list}]]*/
+                            },
+                            {
+                                "menuid": "22",
+                                "menuname": "评奖记录",
+                                "icon": "icon-book-open",
+                                "url": /*[[@{/application/application_list}]]*/
+                            }
+                        ]
+                    },
+                    {
+                        "menuid": "2", "icon": "", "menuname": "评奖评优",
+                        "menus": [
+                            {
+                                "menuid": "21",
+                                "menuname": "查看奖项",
+                                "icon": "icon-book-open",
+                                "url":/*[[@{/award/award_list}]]*/
+                            },
+                            {
+                                "menuid": "22",
+                                "menuname": "评奖记录",
+                                "icon": "icon-book-open",
+                                "url": /*[[@{/application/application_list}]]*/
+                            }
+                        ]
+                    },
+                    {
+                        "menuid": "2", "icon": "", "menuname": "查看审核记录",
+                        "menus": [
+                            {
+                                "menuid": "21",
+                                "menuname": "查看奖项",
+                                "icon": "icon-book-open",
+                                "url":/*[[@{/award/award_list}]]*/
+                            },
+                            {
+                                "menuid": "22",
+                                "menuname": "评奖记录",
+                                "icon": "icon-book-open",
+                                "url": /*[[@{/application/application_list}]]*/
+                            }
+                        ]
+                    },
+                ]
+            }
+        }
+        if (usertype === "2") {
+            var _menus = {
+                "menus": [
+                    {
+                        "menuid": "2", "icon": "", "menuname": "管理个人信息",
+                        "menus": [
+                            {
+                                "menuid": "21",
+                                "menuname": "我的信息",
+                                "icon": "icon-user-student",
+                                "url":/*[[@{/student/information}]]*/
+                            },
+                            {
+                                "menuid": "51",
+                                "menuname": "修改密码",
+                                "icon": "icon-set",
+                                "url":/*[[@{/system/personalView}]]*/
+                            }
+                        ]
+                    },
+                    {
+                        "menuid": "10", "icon": "", "menuname": "查看参选信息",
+                        "menus": [
+                            {
+                                "menuid": "101",
+                                "menuname": "我的申请",
+                                "icon": "icon-book-open",
+                                "url": /*[[@{/award/stu_record}]]*/
+                             },
+                        ]
+                    },
+                    {
+                        "menuid": "4", "icon": "", "menuname": "补充评奖评优材料",
+                        "menus": [
+                            {
+                                "menuid": "41",
+                                "menuname": "查看奖项",
+                                "icon": "icon-book-open",
+                                "url":/*[[@{/award/stu_award_list}]]*/
+                            }
+                        ]
+                    }
+                ]
+            };
+        }
+
+        function showContent(language){
+            $('#content').html(language);
+        }
+
+
+        setInterval("document.getElementById('dynamic-time').innerHTML=new Date().toLocaleString().replaceAll('/','-');", 1000);
+        /*]]>*/
+    </script>
+
+</head>
+<body class="easyui-layout" style="overflow-y: hidden" scroll="no">
+
+<div region="north" split="true" border="false" style="overflow: hidden; height: 30px;
+        background: url(images/layout-browser-hd-bg.gif) #7f99be repeat-x center 50%;
+        line-height: 20px;color: #fff; font-family: Verdana, 微软雅黑,黑体">
+        <span style="float:right; padding-right:20px;" class="head">
+            <span style="color:#2600ff; font-weight:bold;" th:if="${session.usertype == '1'}"
+                  th:text="${session.admin.username}">&nbsp</span>
+            <span style="color:#2600ff; font-weight:bold;" th:if="${session.usertype == '2'}"
+                  th:text="${session.student.username}">&nbsp</span>
+            <span style="color:#2600ff; font-weight:bold;" th:if="${session.usertype == '3'}"
+                  th:text="${session.teacher.username}">&nbsp</span>
+            您好&nbsp;&nbsp;&nbsp;
+            <a style="background-color: #9494e3"  th:href="@{/system/logout}" id="loginOut">安全退出</a>
+        </span>
+    <span style="padding-left:10px; font-size: 16px; ">大学生评奖评优管理系统</span>
+</div>
+<div region="south" split="true" style="height: 30px; background: #D2E0F2; ">
+    <div id="dynamic-time" class="footer" style="text-align: left" ></div>
+</div>
+<div region="west" hide="true" split="true"  title="导航菜单" style="width:180px;" id="west">
+    <div id="nav" class="easyui-accordion" fit="true" border="false">
+        <!--  导航内容 -->
+    </div>
+
+</div>
+<div id="mainPanle" region="center" style="background: #eee; overflow-y:hidden">
+    <div id="tabs" class="easyui-tabs" fit="true" border="false" th:include="system/welcome :: welcome">
+
+    </div>
+</div>
+
+
+</body>
+</html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>通知列表</title>
+	<link rel="stylesheet" type="text/css" th:href="@{/easyui/themes/default/easyui.css}">
+	<link rel="stylesheet" type="text/css" th:href="@{/easyui/themes/icon.css}">
+	<link rel="stylesheet" type="text/css" th:href="@{/easyui/css/demo.css}">
+	<script type="text/javascript" th:src="@{/easyui/jquery.min.js}"></script>
+	<script type="text/javascript" th:src="@{/easyui/jquery.easyui.min.js}"></script>
+	<script type="text/javascript" th:src="@{/easyui/js/validateExtends.js}"></script>
+	<script type="text/javascript" th:inline="javascript">
+		$(function() {
+			//datagrid初始化
+			$('#dataList').datagrid({
+				title:'通知列表',
+				iconCls:'icon-more',//图标
+				border: true,
+				collapsible:false,//是否可折叠的
+				fit: true,//自动大小
+				method: "post",
+				url:[[@{/inform/getInformList}]],
+				singleSelect:false,//是否单选
+				pagination:true,//分页控件
+				sortOrder:'ASC',
+				remoteSort: false,
+				columns: [
+						[
+					{field:'chk',checkbox: true,width:50},
+					{field:'id',title:'序号',width:40},
+					{field:'title',title:'标题',width:150, sortable: true},
+					{field:'content',title:'内容',width:600},
+					{field:'informTime',title:'时间',width:200},
+				]
+				],
+				toolbar: "#toolbar",
+			});
+			//设置分页控件
+			var p = $('#dataList').datagrid('getPager');
+			$(p).pagination({
+				pageSize: 10,//每页显示的记录条数，默认为10
+				pageList: [10,20,30,50,100],//可以设置每页记录条数的列表
+				beforePageText: '第',//页数文本框前显示的汉字
+				afterPageText: '页    共 {pages} 页',
+				displayMsg: '当前显示 {from} - {to} 条记录   共 {total} 条记录',
+			});
+
+			$("#add").click(function () {
+				$("#addDialog").dialog("open");
+			});
+
+			//修改
+			$("#edit").click(function(){
+				var selectRows = $("#dataList").datagrid("getSelections");
+				if(selectRows.length !== 1){
+					$.messager.alert("消息提醒", "请选择一条数据进行操作!", "warning");
+				} else{
+					$("#editDialog").dialog("open");
+				}
+			});
+
+			$("#delete").click(function(){
+				var selectRow = $("#dataList").datagrid("getSelected");
+				if(selectRow == null){
+					$.messager.alert("消息提醒", "请选择数据进行删除!", "warning");
+				} else{
+					$.messager.confirm("消息提醒", "确认删除吗，确认继续？", function(r){
+						if(r){
+							$.ajax({
+								type: "post",
+								url: [[@{/infrom/deleteInform}]],
+							    data: {id: selectRow.id},
+							    success: function(data){
+								if(data.success){
+									$.messager.alert("消息提醒",data.message,"info");
+									//刷新表格
+									$("#dataList").datagrid("reload");
+								} else{
+									$.messager.alert("消息提醒",data.message,"warning");
+
+								}
+							}
+						});
+						}
+					});
+				}
+			});
+
+			//设置添加窗口
+			$("#addDialog").dialog({
+				title: "添加通知",
+				width: 450,
+				height: 450,
+				iconCls: "icon-add",
+				modal: true,
+				collapsible: false,
+				minimizable: false,
+				maximizable: false,
+				draggable: true,
+				closed: true,
+				buttons: [
+					{
+						text: '添加',
+						plain: true,
+						iconCls: 'icon-book-add',
+						handler: function () {
+							var validate = $("#addForm").form("validate");
+							if (!validate) {
+								$.messager.alert("消息提醒", "请检查你输入的数据!", "warning");
+
+							} else {
+								$.ajax({
+									type: "post",
+									url: [[@{/inform/addInform}]],
+								    data: $("#addForm").serialize(),
+									success:function (data) {
+									if (data.success) {
+										$.messager.alert("消息提醒", data.message, "info");
+										//关闭窗口
+										$("#addDialog").dialog("close");
+										//刷新
+										$('#dataList').datagrid("reload");
+									} else {
+										$.messager.alert("消息提醒", data.message, "warning");
+
+									}
+								}
+							});
+							}
+						}
+					},
+					{
+						text: '重置',
+						plain: true,
+						iconCls: 'icon-book-reset',
+						handler: function () {
+							$("#add_title").textbox('setValue',"");
+							$("#add_content").textbox('setValue', "");
+						}
+					},
+				]
+			});
+
+			//编辑通知
+			$("#editDialog").dialog({
+				title: "修改通知信息",
+				width: 450,
+				height: 460,
+				iconCls: "icon-edit",
+				modal: true,
+				collapsible: false,
+				minimizable: false,
+				maximizable: false,
+				draggable: true,
+				closed: true,
+				buttons: [
+					{
+						text:'提交',
+						plain: true,
+						iconCls:'icon-user_add',
+						handler:function(){
+							var validate = $("#editForm").form("validate");
+							if(!validate){
+								$.messager.alert("消息提醒","请检查你输入的数据!","warning");
+								return;
+							} else{
+								var formData = new FormData($( "#editForm" )[0]);
+								$.ajax({
+									type: "post",
+									url: [[@{/inform/editInform}]],
+								    data: formData,
+										async: false,
+										cache: false,
+										contentType: false,
+										processData: false,
+										success: function(data){
+									    if(data.success){
+										$.messager.alert("消息提醒",data.message,"info");
+										//关闭窗口
+										$("#editDialog").dialog("close");
+										//刷新表格
+										// $('#dataList').datagrid("options").queryParams = {clazzid: clazzid};
+										$("#dataList").datagrid("reload");
+										$("#dataList").datagrid("uncheckAll");
+									} else{
+										$.messager.alert("消息提醒",data.message,"warning");
+
+									}
+								}
+							});
+							}
+						}
+					},
+					{
+						text:'重置',
+						plain: true,
+						iconCls:'icon-reload',
+						handler:function(){
+							//清空表单
+							$("#edit_title").textbox('setValue', "");
+							$("#edit_content").textbox('setValue',"");
+						}
+					}
+				],
+				onBeforeOpen: function(){
+					var selectRow = $("#dataList").datagrid("getSelected");
+					$("#edit_id").textbox('setValue',selectRow.id);
+					$("#edit_id").textbox('readonly',true);
+					$("#edit_title").textbox('setValue',selectRow.title);
+					$("#edit_content").textbox('setValue',selectRow.content);
+
+				}
+			});
+
+			//搜索按钮监听事件
+			$("#search-btn").click(function(){
+				$('#dataList').datagrid('load',{
+					username: $('#search_name').val()
+				});
+			});
+
+		});
+
+	</script>
+</head>
+<body>
+<!-- 列表 -->
+<table id="dataList" cellspacing="0" cellpadding="0">
+</table>
+<!-- 工具栏 -->
+<div id="toolbar">
+	<div th:if="${session.usertype == '1' || session.usertype == '3'}" style="float: left;"><a id="add"
+		href="javascript:;" class="easyui-linkbutton"data-options="iconCls:'icon-add',plain:true">添加</a>
+	</div>
+	<div style="float: left;" class="datagrid-btn-separator"></div>
+	<div style="float: left;"><a id="edit" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true">修改</a></div>
+	<div style="float: left;" class="datagrid-btn-separator"></div>
+	<div style="float: left;"><a id="delete" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-some-delete',plain:true">删除</a></div>
+	<div style="float: left;margin-top:4px;" class="datagrid-btn-separator" >&nbsp;&nbsp;查找：<input id="search_award_name" class="easyui-textbox" name="search_name" /></div>
+	<a id="search-btn" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-search',plain:true">搜索</a>
+</div>
+
+<!-- 添加数据窗口 -->
+<div id="addDialog" style="padding: 10px">
+	<form id="addForm" method="post">
+		<table cellpadding="8">
+			<tr>
+				<td style="width:40px">标题:</td>
+				<td colspan="3">
+					<input id="add_title" style="width: 200px; height: 30px;" class="easyui-textbox"
+						   data-options="required:true, missingMessage:'请填写标题'"
+						   name="title"/>
+				</td>
+				<td style="width:80px"></td>
+			</tr>
+			<tr>
+				<td style="width:40px">内容:</td>
+				<td colspan="3">
+					<textarea id="add_content" style="width: 300px; height: 160px;" class="easyui-textbox"
+							  name="content" data-options="required:true,multiline:true, missingMessage:'请填写内容'"></textarea>
+				</td>
+				<td style="width:80px"></td>
+			</tr>
+
+		</table>
+	</form>
+</div>
+
+<!-- 修改数据窗口 -->
+<div id="editDialog" style="padding: 10px">
+	<form id="editForm" method="post">
+		<table cellpadding="8">
+			<tr>
+				<td style="width:40px">序号:</td>
+				<td colspan="3">
+					<input id="edit_id" style="width: 200px; height: 30px;" class="easyui-textbox" name="id"/>
+				</td>
+				<td style="width:80px"></td>
+			</tr>
+			<tr>
+				<td style="width:40px">标题:</td>
+				<td colspan="3">
+					<input id="edit_title" style="width: 200px; height: 30px;" class="easyui-textbox"
+						   data-options="required:true, missingMessage:'请选择学号'"
+						   name="title"/>
+				</td>
+				<td style="width:80px"></td>
+			</tr>
+			<tr>
+				<td style="width:40px">内容:</td>
+				<td colspan="3">
+					<textarea id="edit_content" style="width: 300px; height: 160px;" class="easyui-textbox"
+							  name="content" data-options="required:true,multiline:true, missingMessage:'请填写内容'"></textarea>
+				</td>
+				<td style="width:80px"></td>
+			</tr>
+
+		</table>
+	</form>
+</div>
+<!-- 提交表单处理iframe框架 -->
+<!--<iframe id="photo_target" name="photo_target"></iframe>-->
+</body>
+</html>

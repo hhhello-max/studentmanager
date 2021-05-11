@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pjpy.studentManager.mapper.AwardMapper">
+
+    <resultMap type="com.pjpy.studentManager.domain.Award" id="AwardInfo">
+        <result column="id"               property="id"/>
+        <result column="award_name"       property="name"/>
+        <result column="award_require"    property="require"/>
+        <result column="apply_time"       property="applyTime"/>
+        <result column="check_time"       property="checkTime"/>
+    </resultMap>
+    <update id="editAward" parameterType="Award">
+        update sys_award set award_name = #{name},award_require = #{require},apply_time = #{apply_time},check_time = #{checkTime} where id = #{id}
+    </update>
+
+    <select id="queryList" resultMap="AwardInfo">
+        <!-- 查询所有奖项 -->
+        SELECT *
+        from sys_award
+        limit #{startIndex},#{pagesize}
+    </select>
+
+    <select id="queryCount" resultType="int">
+        select count(*) from sys_award
+    </select>
+
+    <insert id="addAward" parameterType="Award">
+        insert into sys_award(award_name,award_require,apply_time,check_time)
+        values(#{name},#{require},#{applyTime},#{checkTime})
+    </insert>
+
+    <delete id="deleteAward" parameterType="int">
+        delete from sys_award where id = #{id}
+    </delete>
+
+</mapper>
